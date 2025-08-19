@@ -1828,7 +1828,7 @@ cultureInfo pt-BR
 			      "Definition": {
 			        "Binding": {
 			          "ConceptualEntity": "_Measures",
-			          "ConceptualProperty": "Furone Despesas Casal"
+			          "ConceptualProperty": "Pessoa A Despesas Casal"
 			        }
 			      },
 			      "State": "Generated",
@@ -1844,7 +1844,7 @@ cultureInfo pt-BR
 			      "Definition": {
 			        "Binding": {
 			          "ConceptualEntity": "_Measures",
-			          "ConceptualProperty": "Sâmia Despesas Casal"
+			          "ConceptualProperty": "Pessoa B Despesas Casal"
 			        }
 			      },
 			      "State": "Generated",

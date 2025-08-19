@@ -27,7 +27,7 @@ table f_receitas
 
 	column Valor
 		dataType: decimal
-		formatString: "R$"\ #,0.###############;-"R$"\ #,0.###############;"R$"\ #,0.###############
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
 		lineageTag: 6484ba93-6fd9-4244-943e-e0e703acee31
 		summarizeBy: sum
 		sourceColumn: Valor

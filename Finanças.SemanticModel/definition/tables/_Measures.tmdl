@@ -28,7 +28,7 @@ table _Measures
 
 		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
 
-	measure 'Furone Despesas Casal' = ```
+	measure 'Pessoa A Despesas Casal' = ```
 			
 			CALCULATE(
 			    SUM(f_despesas[Valor]),
@@ -41,7 +41,7 @@ table _Measures
 
 		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
 
-	measure 'Sâmia Despesas Casal' = ```
+	measure 'Pessoa B Despesas Casal' = ```
 			
 			CALCULATE(
 			    SUM(f_despesas[Valor]),
@@ -54,7 +54,7 @@ table _Measures
 
 		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
 
-	measure 'Diff Casal' = ABS([Furone Despesas Casal] - [Sâmia Despesas Casal]) / 2
+	measure 'Diff Casal' = ABS([Pessoa A Despesas Casal] - [Pessoa B Despesas Casal]) / 2
 		formatString: "R$"\ #,0.###############;-"R$"\ #,0.###############;"R$"\ #,0.###############
 		lineageTag: 6b7ad130-865c-4d3a-8de4-4ab0b1f08c30
 
@@ -75,7 +75,7 @@ table _Measures
 			    SUM(f_despesas[Valor]),
 			    f_despesas[Categoria Despesa] = "Dinheiro emprestado"
 			)
-		formatString: "R$"\ #,0.###############;-"R$"\ #,0.###############;"R$"\ #,0.###############
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
 		lineageTag: 3c9df992-c7cf-4043-8386-3ea3f4c7812b
 
 		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
@@ -85,7 +85,7 @@ table _Measures
 			    SUM(f_receitas[Valor]),
 			    f_receitas[Categoria Receitas] = "Dinheiro emprestado"
 			)
-		formatString: "R$"\ #,0.###############;-"R$"\ #,0.###############;"R$"\ #,0.###############
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
 		lineageTag: 99eefd9d-89e2-44f0-866f-0ab8d6579828
 
 		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
