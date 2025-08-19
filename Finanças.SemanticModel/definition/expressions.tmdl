@@ -1,0 +1,131 @@
+expression 'Base de dados' =
+		let
+		    Fonte = GoogleSheets.Contents("https://docs.google.com/spreadsheets/d/1kpthU6KJ1K2FP88SuvcHEbYq4TnRyYxg4OJy03hGeUo/edit?gid=2008500464#gid=2008500464"),
+		    #"Base de dados_Table" = Fonte{[name="Base de dados",ItemKind="Table"]}[Data],
+		    #"Linhas Filtradas" = Table.SelectRows(#"Base de dados_Table", each ([Column2] <> "")),
+		    #"Cabeçalhos Promovidos" = Table.PromoteHeaders(#"Linhas Filtradas", [PromoteAllScalars=true]),
+		    #"Tipo Alterado" = Table.TransformColumnTypes(#"Cabeçalhos Promovidos",{{"Carimbo de data/hora", type datetime}, {"Tipo", type text}, {"Conta", type text}, {"Título da transação", type text}, {"Banco", type text}, {"Valor", type number}, {"Data", type date}, {"Categoria Despesa", type text}, {"Modalidade", type text}, {"Categoria Receitas", type text}, {"", type any}, {"Fonte dinheiro", type text}}),
+		    #"Colunas Removidas" = Table.RemoveColumns(#"Tipo Alterado",{"", "Id Nubank"})
+		in
+		    #"Colunas Removidas"
+	lineageTag: 2683dcf3-c90c-49b5-9d14-996d1a27f266
+	queryGroup: BRONZE
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Exception
+
+expression 'f_despesas_casal (2)' =
+		let
+		    Fonte = #"Base de dados",
+		    #"Colunas Removidas" = Table.RemoveColumns(Fonte,{"Carimbo de data/hora"}),
+		    #"Linhas Filtradas" = Table.SelectRows(#"Colunas Removidas", each ([Tipo] = "Despesa")),
+		    #"Colunas Removidas1" = Table.RemoveColumns(#"Linhas Filtradas",{"Categoria Receitas", "Tipo"}),
+		    #"Tipo Alterado" = Table.TransformColumnTypes(#"Colunas Removidas1",{{"Valor", Currency.Type}}),
+		    #"Linhas Filtradas1" = Table.SelectRows(#"Tipo Alterado", each ([Conta] = "Casal")),
+		    #"Personalização Adicionada" = Table.AddColumn(#"Linhas Filtradas1", "tabela", each 2),
+		    #"Linhas Classificadas" = Table.Sort(#"Personalização Adicionada",{{"Data", Order.Descending}})
+		in
+		    #"Linhas Classificadas"
+	lineageTag: be7ae1ce-cab2-4724-8a36-5aa4c2019a76
+	queryGroup: SILVER
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+
+expression f_despesas_casal_final =
+		let
+		    Fonte = Table.Combine({f_despesas_casal, #"f_despesas_casal (2)"}),
+		    #"Personalização Adicionada" = Table.AddColumn(Fonte, "Valor por pessoa", each [Valor]/2),
+		    #"Colunas Reordenadas" = Table.ReorderColumns(#"Personalização Adicionada",{"Conta", "Título da transação", "Banco", "Valor", "Valor por pessoa", "Data", "Categoria Despesa", "Modalidade", "Fonte dinheiro", "tabela"}),
+		    #"Tipo Alterado" = Table.TransformColumnTypes(#"Colunas Reordenadas",{{"Valor por pessoa", Currency.Type}, {"tabela", type text}}),
+		    #"Valor Substituído" = Table.ReplaceValue(#"Tipo Alterado","1","Furone",Replacer.ReplaceText,{"tabela"}),
+		    #"Valor Substituído1" = Table.ReplaceValue(#"Valor Substituído","2","Sâmia",Replacer.ReplaceText,{"tabela"}),
+		    #"Colunas Reordenadas1" = Table.ReorderColumns(#"Valor Substituído1",{"tabela", "Título da transação", "Banco", "Valor", "Valor por pessoa", "Data", "Categoria Despesa", "Modalidade", "Fonte dinheiro"}),
+		    #"Colunas Renomeadas2" = Table.RenameColumns(#"Colunas Reordenadas1",{{"Conta", "Conta origem"}}),
+		    #"Colunas Renomeadas" = Table.RenameColumns(#"Colunas Renomeadas2",{{"tabela", "Conta"}}),
+		    #"Colunas Removidas1" = Table.RemoveColumns(#"Colunas Renomeadas",{"Valor"}),
+		    #"Colunas Renomeadas1" = Table.RenameColumns(#"Colunas Removidas1",{{"Valor por pessoa", "Valor"}}),
+		    #"Linhas Filtradas" = Table.SelectRows(#"Colunas Renomeadas1", each [Qtidade de parcelas] = ""),
+		    #"Linhas Classificadas" = Table.Sort(#"Linhas Filtradas",{{"Data", Order.Descending}})
+		in
+		    #"Linhas Classificadas"
+	lineageTag: 93aae6c0-cc34-492d-b10a-0e25bce3e51d
+	queryGroup: SILVER
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+
+expression f_despesas_parceladas =
+		let
+		    Fonte = #"Base de dados",
+		    #"Linhas Filtradas" = Table.SelectRows(Fonte, each [Qtidade de parcelas] <> ""),
+		    #"Personalização Adicionada" = Table.AddColumn(#"Linhas Filtradas", "Linhas", each {0..[Qtidade de parcelas]-1}),
+		    #"Linhas Expandido" = Table.ExpandListColumn(#"Personalização Adicionada", "Linhas"),
+		    #"Personalização Adicionada1" = Table.AddColumn(#"Linhas Expandido", "Data Corrigida", each Date.AddMonths([Data], [Linhas])),
+		    #"Colunas Reordenadas" = Table.ReorderColumns(#"Personalização Adicionada1",{"Carimbo de data/hora", "Tipo", "Conta", "Título da transação", "Banco", "Valor", "Data", "Data Corrigida", "Categoria Despesa", "Modalidade", "Categoria Receitas", "Fonte dinheiro", "Qtidade de parcelas", "Linhas"}),
+		    #"Tipo Alterado" = Table.TransformColumnTypes(#"Colunas Reordenadas",{{"Data Corrigida", type date}}),
+		    #"Colunas Removidas" = Table.RemoveColumns(#"Tipo Alterado",{"Data"}),
+		    #"Colunas Renomeadas" = Table.RenameColumns(#"Colunas Removidas",{{"Data Corrigida", "Data"}}),
+		    #"Personalização Adicionada2" = Table.AddColumn(#"Colunas Renomeadas", "Parcela", each [Linhas] + 1),
+		    #"Colunas Removidas1" = Table.RemoveColumns(#"Personalização Adicionada2",{"Linhas"}),
+		    #"Colunas Reordenadas1" = Table.ReorderColumns(#"Colunas Removidas1",{"Carimbo de data/hora", "Tipo", "Conta", "Título da transação", "Banco", "Valor", "Data", "Categoria Despesa", "Modalidade", "Categoria Receitas", "Fonte dinheiro", "Parcela", "Qtidade de parcelas"}),
+		    #"Tipo Alterado1" = Table.TransformColumnTypes(#"Colunas Reordenadas1",{{"Parcela", Int64.Type}, {"Qtidade de parcelas", Int64.Type}, {"Valor", Currency.Type}}),
+		    #"Personalização Adicionada3" = Table.AddColumn(#"Tipo Alterado1", "Valor Corrigido", each [Valor]/[Qtidade de parcelas]),
+		    #"Tipo Alterado2" = Table.TransformColumnTypes(#"Personalização Adicionada3",{{"Valor Corrigido", Currency.Type}}),
+		    #"Colunas Reordenadas2" = Table.ReorderColumns(#"Tipo Alterado2",{"Carimbo de data/hora", "Tipo", "Conta", "Título da transação", "Banco", "Valor", "Valor Corrigido", "Data", "Categoria Despesa", "Modalidade", "Categoria Receitas", "Fonte dinheiro", "Parcela", "Qtidade de parcelas"}),
+		    #"Colunas Removidas2" = Table.RemoveColumns(#"Colunas Reordenadas2",{"Valor"}),
+		    #"Colunas Renomeadas1" = Table.RenameColumns(#"Colunas Removidas2",{{"Valor Corrigido", "Valor"}}),
+		    #"Colunas Removidas3" = Table.RemoveColumns(#"Colunas Renomeadas1",{"Categoria Receitas", "Carimbo de data/hora", "Tipo"}),
+		    #"Linhas Filtradas1" = Table.SelectRows(#"Colunas Removidas3", each [Conta] <> "Casal")
+		in
+		    #"Linhas Filtradas1"
+	lineageTag: 98247ac3-4a0e-45a6-9280-0c215f3ca7d2
+	queryGroup: SILVER
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+
+expression f_despesas_casal_parceladas_final =
+		let
+		    Fonte = Table.Combine({f_despesas_casal, #"f_despesas_casal (2)"}),
+		    #"Personalização Adicionada" = Table.AddColumn(Fonte, "Valor por pessoa", each [Valor]/2),
+		    #"Colunas Reordenadas" = Table.ReorderColumns(#"Personalização Adicionada",{"Conta", "Título da transação", "Banco", "Valor", "Valor por pessoa", "Data", "Categoria Despesa", "Modalidade", "Fonte dinheiro", "tabela"}),
+		    #"Tipo Alterado" = Table.TransformColumnTypes(#"Colunas Reordenadas",{{"Valor por pessoa", Currency.Type}, {"tabela", type text}}),
+		    #"Valor Substituído" = Table.ReplaceValue(#"Tipo Alterado","1","Furone",Replacer.ReplaceText,{"tabela"}),
+		    #"Valor Substituído1" = Table.ReplaceValue(#"Valor Substituído","2","Sâmia",Replacer.ReplaceText,{"tabela"}),
+		    #"Colunas Reordenadas1" = Table.ReorderColumns(#"Valor Substituído1",{"tabela", "Título da transação", "Banco", "Valor", "Valor por pessoa", "Data", "Categoria Despesa", "Modalidade", "Fonte dinheiro"}),
+		    #"Colunas Renomeadas4" = Table.RenameColumns(#"Colunas Reordenadas1",{{"Conta", "Conta origem"}}),
+		    #"Colunas Renomeadas" = Table.RenameColumns(#"Colunas Renomeadas4",{{"tabela", "Conta"}}),
+		    #"Colunas Removidas1" = Table.RemoveColumns(#"Colunas Renomeadas",{"Valor"}),
+		    #"Colunas Renomeadas1" = Table.RenameColumns(#"Colunas Removidas1",{{"Valor por pessoa", "Valor"}}),
+		    #"Linhas Filtradas" = Table.SelectRows(#"Colunas Renomeadas1", each [Qtidade de parcelas] <> ""),
+		    #"Personalização Adicionada1" = Table.AddColumn(#"Linhas Filtradas", "Linhas", each {0..[Qtidade de parcelas]-1}),
+		    #"Linhas Expandido" = Table.ExpandListColumn(#"Personalização Adicionada1", "Linhas"),
+		    #"Personalização Adicionada2" = Table.AddColumn(#"Linhas Expandido", "Data corrigida", each Date.AddMonths([Data], [Linhas])),
+		    #"Tipo Alterado1" = Table.TransformColumnTypes(#"Personalização Adicionada2",{{"Data corrigida", type date}}),
+		    #"Colunas Reordenadas2" = Table.ReorderColumns(#"Tipo Alterado1",{"Conta", "Título da transação", "Banco", "Valor", "Data", "Data corrigida", "Categoria Despesa", "Qtidade de parcelas", "Modalidade", "Fonte dinheiro", "Linhas"}),
+		    #"Colunas Removidas2" = Table.RemoveColumns(#"Colunas Reordenadas2",{"Data"}),
+		    #"Colunas Renomeadas2" = Table.RenameColumns(#"Colunas Removidas2",{{"Data corrigida", "Data"}}),
+		    #"Colunas Reordenadas3" = Table.ReorderColumns(#"Colunas Renomeadas2",{"Conta", "Título da transação", "Banco", "Valor", "Data", "Categoria Despesa", "Modalidade", "Fonte dinheiro", "Linhas", "Qtidade de parcelas"}),
+		    #"Personalização Adicionada3" = Table.AddColumn(#"Colunas Reordenadas3", "Parcela", each [Linhas] + 1),
+		    #"Colunas Reordenadas4" = Table.ReorderColumns(#"Personalização Adicionada3",{"Conta", "Título da transação", "Banco", "Valor", "Data", "Categoria Despesa", "Modalidade", "Fonte dinheiro", "Linhas", "Parcela", "Qtidade de parcelas"}),
+		    #"Colunas Removidas3" = Table.RemoveColumns(#"Colunas Reordenadas4",{"Linhas"}),
+		    #"Tipo Alterado2" = Table.TransformColumnTypes(#"Colunas Removidas3",{{"Parcela", Int64.Type}, {"Qtidade de parcelas", Int64.Type}}),
+		    #"Personalização Adicionada4" = Table.AddColumn(#"Tipo Alterado2", "Personalizar", each [Valor] / [Qtidade de parcelas]),
+		    #"Tipo Alterado3" = Table.TransformColumnTypes(#"Personalização Adicionada4",{{"Personalizar", Currency.Type}}),
+		    #"Colunas Reordenadas5" = Table.ReorderColumns(#"Tipo Alterado3",{"Conta", "Título da transação", "Banco", "Valor", "Personalizar", "Data", "Categoria Despesa", "Modalidade", "Fonte dinheiro", "Parcela", "Qtidade de parcelas"}),
+		    #"Colunas Removidas4" = Table.RemoveColumns(#"Colunas Reordenadas5",{"Valor"}),
+		    #"Colunas Renomeadas3" = Table.RenameColumns(#"Colunas Removidas4",{{"Personalizar", "Valor"}})
+		in
+		    #"Colunas Renomeadas3"
+	lineageTag: 4ee91a18-a8e6-4270-a932-95d5253e3954
+	queryGroup: SILVER
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

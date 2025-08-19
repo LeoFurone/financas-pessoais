@@ -1,0 +1,147 @@
+table _Measures
+	lineageTag: 4deb5a6e-fef6-4883-95be-86d1bca595b2
+
+	measure 'Porcentagem das despesas' =
+			
+			
+			var soma_por_categoria = SUM(f_despesas[Valor])
+			
+			var total = CALCULATE(
+			    SUM(f_despesas[Valor]),
+			    ALLSELECTED(f_despesas[Categoria Despesa])
+			)
+			
+			return DIVIDE(soma_por_categoria, total)
+		formatString: #,0.00%;-#,0.00%;#,0.00%
+		lineageTag: 4ee2f8bf-9d86-4dd7-a32f-657703373661
+
+	measure Saldo =
+			
+			
+			var receitas = SUM(f_receitas[Valor])
+			
+			var despesas = SUM(f_despesas[Valor])
+			
+			RETURN receitas - despesas
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: c033a4f8-98a5-4c26-9f52-b718accc6397
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	measure 'Furone Despesas Casal' = ```
+			
+			CALCULATE(
+			    SUM(f_despesas[Valor]),
+			    (CONTAINSSTRING(f_despesas[Banco], "Banco A") && NOT(CONTAINSSTRING(f_despesas[Banco], "Nubank"))) ||
+			    (CONTAINSSTRING(f_despesas[Banco], "Banco A") && CONTAINSSTRING(f_despesas[Banco], "Nubank") && NOT(CONTAINSSTRING(f_despesas[Modalidade], "Crédito") && NOT(CONTAINSSTRING(f_despesas[Modalidade], "Crédito - Parcelamento"))) 
+			))
+			```
+		formatString: "R$"\ #,0.###############;-"R$"\ #,0.###############;"R$"\ #,0.###############
+		lineageTag: 7bd7aff6-2a1d-4b16-9224-52cd55fcb1db
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	measure 'Sâmia Despesas Casal' = ```
+			
+			CALCULATE(
+			    SUM(f_despesas[Valor]),
+			    (CONTAINSSTRING(f_despesas[Banco], "Banco B") && NOT(CONTAINSSTRING(f_despesas[Banco], "Nubank"))) ||
+			    (CONTAINSSTRING(f_despesas[Banco], "Banco B") && CONTAINSSTRING(f_despesas[Banco], "Nubank") && NOT(CONTAINSSTRING(f_despesas[Modalidade], "Crédito") && NOT(CONTAINSSTRING(f_despesas[Modalidade], "Crédito - Parcelamento"))) 
+			))
+			```
+		formatString: "R$"\ #,0.###############;-"R$"\ #,0.###############;"R$"\ #,0.###############
+		lineageTag: 8fbc2b20-6b83-4bbd-b612-51d13ee117b7
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	measure 'Diff Casal' = ABS([Furone Despesas Casal] - [Sâmia Despesas Casal]) / 2
+		formatString: "R$"\ #,0.###############;-"R$"\ #,0.###############;"R$"\ #,0.###############
+		lineageTag: 6b7ad130-865c-4d3a-8de4-4ab0b1f08c30
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	measure Futuro =
+			CALCULATE(
+			    SUM(f_despesas[Valor]),
+			    f_despesas[Categoria Despesa] = "Futuro"
+			)
+		formatString: "R$"\ #,0.###############;-"R$"\ #,0.###############;"R$"\ #,0.###############
+		lineageTag: fb7cc79c-e967-455b-aecb-693ee7b08863
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	measure 'Dinheiro Emprestado' =
+			CALCULATE(
+			    SUM(f_despesas[Valor]),
+			    f_despesas[Categoria Despesa] = "Dinheiro emprestado"
+			)
+		formatString: "R$"\ #,0.###############;-"R$"\ #,0.###############;"R$"\ #,0.###############
+		lineageTag: 3c9df992-c7cf-4043-8386-3ea3f4c7812b
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	measure 'Receita Dinheiro Emprestado' =
+			CALCULATE(
+			    SUM(f_receitas[Valor]),
+			    f_receitas[Categoria Receitas] = "Dinheiro emprestado"
+			)
+		formatString: "R$"\ #,0.###############;-"R$"\ #,0.###############;"R$"\ #,0.###############
+		lineageTag: 99eefd9d-89e2-44f0-866f-0ab8d6579828
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	measure Despesa = COALESCE(SUM(f_despesas[Valor]), 0)
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: c052f563-a177-4611-8b17-17840c6af3af
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	measure 'Despesa Salário' =
+			CALCULATE(
+			    [Despesa],
+			    f_despesas[Fonte dinheiro] <> "13º" &&
+			    f_despesas[Fonte dinheiro] <> "14º" &&
+			    f_despesas[Fonte dinheiro] <> "Bônus"
+			)
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: effa6344-18fc-4d02-91e8-633cef5cf971
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	measure 'Porcentagem gasta 13º' =
+			
+			
+			var despesa = CALCULATE(SUM(f_despesas[Valor]), f_despesas[Fonte dinheiro] = "13º")
+			
+			var limite = CALCULATE(SUM(f_receitas[Valor]),f_receitas[Categoria Receitas] = "Salário - 13º")
+			
+			RETURN DIVIDE(despesa, limite)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 8c7d24a8-1061-410d-a98e-9e7556454233
+
+	measure 'Porcentagem gasta 14º' =
+			
+			
+			var despesa = CALCULATE(SUM(f_despesas[Valor]), f_despesas[Fonte dinheiro] = "14º")
+			
+			var limite = CALCULATE(SUM(f_receitas[Valor]),f_receitas[Categoria Receitas] = "Salário - 14º")
+			
+			RETURN DIVIDE(despesa, limite)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 3f58d561-3b09-450a-ad58-f8b7bffc3f7f
+
+	partition _Measures = m
+		mode: import
+		queryGroup: GOLD
+		source =
+				let
+				    Fonte = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Coluna 1" = _t]),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(Fonte,{{"Coluna 1", type text}}),
+				    #"Colunas Removidas" = Table.RemoveColumns(#"Tipo Alterado",{"Coluna 1"})
+				in
+				    #"Colunas Removidas"
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

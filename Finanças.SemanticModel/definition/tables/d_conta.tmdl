@@ -1,0 +1,26 @@
+table d_conta
+	lineageTag: cd1333d1-872e-41a9-9f28-d3704c98ba7c
+
+	column Conta
+		dataType: string
+		lineageTag: abb6f44b-d4c5-4044-b685-bd9a0eae9b9d
+		summarizeBy: none
+		sourceColumn: Conta
+
+		annotation SummarizationSetBy = Automatic
+
+	partition d_conta = m
+		mode: import
+		queryGroup: GOLD
+		source =
+				let
+				    Fonte = #"Base de dados",
+				    #"Outras Colunas Removidas" = Table.SelectColumns(Fonte,{"Conta"}),
+				    #"Duplicatas Removidas" = Table.Distinct(#"Outras Colunas Removidas")
+				in
+				    #"Duplicatas Removidas"
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

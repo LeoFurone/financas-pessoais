@@ -1,0 +1,90 @@
+table f_receitas
+	lineageTag: 754436b7-082a-4696-9a19-b64e665d8570
+
+	column Conta
+		dataType: string
+		lineageTag: 026ff84c-2e67-467c-9938-9b1f189e8da7
+		summarizeBy: none
+		sourceColumn: Conta
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Título da transação'
+		dataType: string
+		lineageTag: 739df7fe-2f5b-41f7-9797-4e602709aa10
+		summarizeBy: none
+		sourceColumn: Título da transação
+
+		annotation SummarizationSetBy = Automatic
+
+	column Banco
+		dataType: string
+		lineageTag: 985b4ff6-2a8b-45fa-b804-3ded4790deb4
+		summarizeBy: none
+		sourceColumn: Banco
+
+		annotation SummarizationSetBy = Automatic
+
+	column Valor
+		dataType: decimal
+		formatString: "R$"\ #,0.###############;-"R$"\ #,0.###############;"R$"\ #,0.###############
+		lineageTag: 6484ba93-6fd9-4244-943e-e0e703acee31
+		summarizeBy: sum
+		sourceColumn: Valor
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	column Data
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 6c60d34f-4163-4c7f-9979-cf4b0606fa49
+		summarizeBy: none
+		sourceColumn: Data
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Categoria Receitas'
+		dataType: string
+		lineageTag: 3290ee57-cfbf-4018-8aac-93614e25fefe
+		summarizeBy: none
+		sourceColumn: Categoria Receitas
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Qtidade de parcelas'
+		dataType: string
+		lineageTag: 098d1060-d2ee-4fdd-9f0e-7bb500c22f16
+		summarizeBy: none
+		sourceColumn: Qtidade de parcelas
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tirar linha do dashboard'
+		dataType: string
+		lineageTag: 3c8a4de5-5cd1-424c-89f4-39e517cd419a
+		summarizeBy: none
+		sourceColumn: Tirar linha do dashboard
+
+		annotation SummarizationSetBy = Automatic
+
+	partition f_receitas = m
+		mode: import
+		queryGroup: GOLD
+		source =
+				let
+				    Fonte = #"Base de dados",
+				    #"Colunas Removidas" = Table.RemoveColumns(Fonte,{"Carimbo de data/hora"}),
+				    #"Linhas Filtradas" = Table.SelectRows(#"Colunas Removidas", each ([Tipo] = "Receita")),
+				    #"Colunas Removidas1" = Table.RemoveColumns(#"Linhas Filtradas",{"Tipo", "Modalidade", "Categoria Despesa", "Fonte dinheiro"}),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(#"Colunas Removidas1",{{"Valor", Currency.Type}})
+				in
+				    #"Tipo Alterado"
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

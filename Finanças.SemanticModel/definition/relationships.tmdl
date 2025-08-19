@@ -1,0 +1,39 @@
+relationship d38919de-6139-4aa0-b4a3-722fe579a0e4
+	joinOnDateBehavior: datePartOnly
+	fromColumn: d_calendario.Data
+	toColumn: LocalDateTable_8af65642-d54f-4222-8ca5-d16b40c73164.Date
+
+relationship beadf53b-4925-5568-4887-f3f54b89ee6d
+	fromColumn: f_despesas.Data
+	toColumn: d_calendario.Data
+
+relationship 7a3f0bba-3364-337c-a7d1-60bed3296b84
+	fromColumn: f_receitas.Data
+	toColumn: d_calendario.Data
+
+relationship 16385453-e431-4199-a40f-1e287d498e4e
+	joinOnDateBehavior: datePartOnly
+	fromColumn: d_calendario.Mes_Casal
+	toColumn: LocalDateTable_7c9e389c-2bc2-47d1-a406-bc8a0e9e7b8a.Date
+
+relationship 95f62df8-ceaa-6fbd-2842-947e543c1893
+	fromColumn: f_despesas_casal.Data
+	toColumn: d_calendario.Data
+
+relationship 41e02404-626a-4107-a940-b468174a26a5
+	joinOnDateBehavior: datePartOnly
+	fromColumn: d_calendario.'Mês/Ano Num'
+	toColumn: LocalDateTable_43888674-155f-403b-87c2-d82c5022a7be.Date
+
+relationship AutoDetected_2e22f90c-6642-4777-8840-d72c7528e4a0
+	fromColumn: f_receitas.Conta
+	toColumn: d_conta.Conta
+
+relationship AutoDetected_36332ffb-cbb5-412c-99dd-2ac44df5979d
+	fromColumn: f_despesas_casal.Conta
+	toColumn: d_conta.Conta
+
+relationship 021fc040-95c0-47bf-c2a7-21fd78f6aeb3
+	fromColumn: f_despesas.Conta
+	toColumn: d_conta.Conta
+

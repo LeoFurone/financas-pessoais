@@ -1,0 +1,189 @@
+table d_calendario
+	lineageTag: 36e3c522-1704-4350-a238-5b2c34c6dfb8
+
+	column Data
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: f6f12abf-3423-4753-89f7-c7795b073586
+		summarizeBy: none
+		sourceColumn: Data
+
+		variation Variation
+			isDefault
+			relationship: d38919de-6139-4aa0-b4a3-722fe579a0e4
+			defaultHierarchy: LocalDateTable_8af65642-d54f-4222-8ca5-d16b40c73164.'Hierarquia de datas'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Ano
+		dataType: int64
+		formatString: 0
+		lineageTag: 40e3cb6b-025d-4f91-8aea-3e7f525db331
+		summarizeBy: sum
+		sourceColumn: Ano
+
+		annotation SummarizationSetBy = Automatic
+
+	column Mes
+		dataType: int64
+		formatString: 0
+		lineageTag: 18b2a6b0-4e9f-4e1d-81c5-e1588a271d53
+		summarizeBy: sum
+		sourceColumn: Mes
+
+		annotation SummarizationSetBy = Automatic
+
+	column Nome_Mes
+		dataType: string
+		lineageTag: 802ff6a4-defd-425b-a44f-d1839a013189
+		summarizeBy: none
+		sourceColumn: Nome_Mes
+
+		annotation SummarizationSetBy = Automatic
+
+	column Dia_Mes
+		dataType: int64
+		formatString: 0
+		lineageTag: 06fc1f4a-2c6d-4810-b669-673dd66f4e89
+		summarizeBy: sum
+		sourceColumn: Dia_Mes
+
+		annotation SummarizationSetBy = Automatic
+
+	column Dia_Ano
+		dataType: int64
+		formatString: 0
+		lineageTag: 3d834057-6d4e-4bc8-9338-eab3fb6be97e
+		summarizeBy: sum
+		sourceColumn: Dia_Ano
+
+		annotation SummarizationSetBy = Automatic
+
+	column Dia_Semana
+		dataType: int64
+		formatString: 0
+		lineageTag: b596bb02-a71d-41dc-8aaa-09f5f160f1d9
+		summarizeBy: sum
+		sourceColumn: Dia_Semana
+
+		annotation SummarizationSetBy = Automatic
+
+	column Nome_Dia_Semana
+		dataType: string
+		lineageTag: a64b4fd0-177e-40c5-8a06-e50c3dedccae
+		summarizeBy: none
+		sourceColumn: Nome_Dia_Semana
+
+		annotation SummarizationSetBy = Automatic
+
+	column Semana_Ano
+		dataType: int64
+		formatString: 0
+		lineageTag: 10ec1155-65ea-44ff-8525-34d47433b7a9
+		summarizeBy: sum
+		sourceColumn: Semana_Ano
+
+		annotation SummarizationSetBy = Automatic
+
+	column Semana_Mes
+		dataType: int64
+		formatString: 0
+		lineageTag: 84411b03-6304-447d-9dd0-819f4c61f5e3
+		summarizeBy: sum
+		sourceColumn: Semana_Mes
+
+		annotation SummarizationSetBy = Automatic
+
+	column Mes_Casal =
+			IF(
+			    d_calendario[Dia_Mes] > 5,
+			    DATE(d_calendario[Ano], d_calendario[Mes] + 1, 1),
+			    STARTOFMONTH(d_calendario[Data])
+			)
+		formatString: Short Date
+		lineageTag: a0fa72f3-b9b3-43c9-bc28-0dfb553e4c02
+		summarizeBy: none
+
+		variation Variation
+			isDefault
+			relationship: 16385453-e431-4199-a40f-1e287d498e4e
+			defaultHierarchy: LocalDateTable_7c9e389c-2bc2-47d1-a406-bc8a0e9e7b8a.'Hierarquia de datas'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Mês/Ano = d_calendario[Nome_Mes] & "/" & d_calendario[Ano]
+		lineageTag: c7bb261b-f4ec-46eb-b8ed-b7bff28b78f3
+		summarizeBy: none
+		sortByColumn: 'Mês/Ano Num'
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Mês/Ano Num' = DATE(d_calendario[Ano],d_calendario[Mes],1)
+		formatString: Short Date
+		lineageTag: 50e3868a-5110-4e7b-b24a-817fec918d6c
+		summarizeBy: none
+
+		variation Variation
+			isDefault
+			relationship: 41e02404-626a-4107-a940-b468174a26a5
+			defaultHierarchy: LocalDateTable_43888674-155f-403b-87c2-d82c5022a7be.'Hierarquia de datas'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition d_calendario = m
+		mode: import
+		queryGroup: GOLD
+		source = ```
+				let
+				    AnoInicial = 2024,
+				    AnoFinal = Date.Year(DateTime.LocalNow()),
+				    //Declara uma data inicial
+				    DataInicial = Date.StartOfYear(#date(AnoInicial, 1, 1)),
+				    //Declara uma data final
+				    DataFinal = List.Max(f_despesas[Data]),
+				    //Conta a quantidade de dias entre as duas datas
+				    QtdeDias = Duration.Days(DataFinal-DataInicial)+1,
+				    //Cria lista de datas
+				    Datalist = List.Dates(DataInicial,QtdeDias,#duration(1,0,0,0)),
+				    //Converter para Tabela
+				    ConvertTabela = Table.FromList(Datalist, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+				    //Altera Tipo
+				    AlteraTipo = Table.TransformColumnTypes(ConvertTabela,{{"Column1", type date}}),
+				    //Renomeia Coluna
+				    RenomeiaColuna = Table.RenameColumns(AlteraTipo,{"Column1", "Data"}),
+				 
+				    //Criação de Colunas Adicionais
+				    //Criar Coluna ANO
+				    Ano = Table.AddColumn(RenomeiaColuna, "Ano", each Date.Year([Data]),Int64.Type),
+				    //Criar Coluna Mês
+				    Mes = Table.AddColumn(Ano, "Mes", each Date.Month([Data]),Int64.Type),
+				    //Criar Coluna Nome do Mês
+				    Nome_Mes = Table.AddColumn(Mes, "Nome_Mes", each Date.MonthName([Data]), type text),
+				    //Criar Coluna Dia
+				    Dia_do_Mes = Table.AddColumn(Nome_Mes, "Dia_Mes", each Date.Day([Data]), Int64.Type),
+				    //Criar Coluna Dia do Ano
+				    Dia_do_Ano = Table.AddColumn(Dia_do_Mes, "Dia_Ano", each Date.DayOfYear([Data]), Int64.Type),
+				    //Criar Coluna Dia da Semana
+				    Dia_Semana = Table.AddColumn(Dia_do_Ano, "Dia_Semana", each Date.DayOfWeek([Data]), Int64.Type),
+				    //Criar Coluna Dia da Semana
+				    Nome_Dia_Semana = Table.AddColumn(Dia_Semana, "Nome_Dia_Semana", each Date.DayOfWeekName([Data]), type text),
+				    //Criar Coluna Dia da Semana
+				    Trimestre = Table.AddColumn(Nome_Dia_Semana, "Trimestre", each Date.QuarterOfYear([Data]), Int64.Type),
+				    //Criar Coluna Semana do Ano
+				    Semana_Ano = Table.AddColumn(Trimestre, "Semana_Ano", each Date.WeekOfYear([Data]), Int64.Type),
+				    //Criar Coluna Semana do Mes
+				    Semana_Mes = Table.AddColumn(Semana_Ano, "Semana_Mes", each Date.WeekOfMonth([Data]), Int64.Type),
+				    #"Colunas Removidas" = Table.RemoveColumns(Semana_Mes,{"Trimestre"})
+				
+				in
+				    #"Colunas Removidas"
+				```
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

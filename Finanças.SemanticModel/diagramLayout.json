@@ -1,0 +1,98 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 74.264753981949028
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "nodeIndex": "f_despesas",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 293
+          },
+          "nodeIndex": "f_receitas",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 372,
+            "y": 0
+          },
+          "nodeIndex": "d_calendario",
+          "nodeLineageTag": "36e3c522-1704-4350-a238-5b2c34c6dfb8",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 366,
+            "y": 335.5
+          },
+          "nodeIndex": "d_conta",
+          "nodeLineageTag": "00772056-2ff8-4290-8930-0a8e66c61a9a",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 632,
+            "y": 16.5
+          },
+          "nodeIndex": "_Measures",
+          "nodeLineageTag": "4deb5a6e-fef6-4883-95be-86d1bca595b2",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 539.334654012245
+          },
+          "nodeIndex": "f_despesas_casal",
+          "nodeLineageTag": "f7b402b5-44f9-4a48-8823-0bcbab6d7053",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 5
+        }
+      ],
+      "name": "Todas as tabelas",
+      "zoomValue": 63.287087723234,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "Todas as tabelas",
+  "defaultDiagram": "Todas as tabelas"
+}
